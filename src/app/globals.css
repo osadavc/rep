@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans:
+    system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Apple's light-mode system colors (label, separator and fill grays) */
+  --color-secondary: rgb(60 60 67 / 0.6);
+  --color-tertiary: rgb(60 60 67 / 0.3);
+  --color-separator: rgb(60 60 67 / 0.29);
+  --color-fill: rgb(118 118 128 / 0.12);
+  --color-fill-strong: rgb(120 120 128 / 0.2);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* Element defaults live in the base layer so Tailwind utilities can override them. */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html {
+    background: #fff;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.35;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a,
+  button,
+  label,
+  summary {
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  select {
+    /* Anything under 16px makes iOS zoom in on focus. */
+    font-size: max(16px, 1em);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-tertiary);
+  }
+
+  :focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+  }
+
+  ::selection {
+    background: #000;
+    color: #fff;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Safe areas for notches, the home indicator and Home Screen mode. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Fixed bottom bars step aside while the on-screen keyboard is up. */
+@media (pointer: coarse) {
+  html[data-kb] .hide-kb {
+    display: none;
+  }
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Instant press feedback on every tappable thing. */
+@utility press {
+  transition: opacity 120ms ease-out;
+  &:active {
+    opacity: 0.4;
+    transition-duration: 0ms;
+  }
 }
