@@ -144,14 +144,24 @@ export async function flush() {
 
 // Repeated edits to the same thing (typing a name, tapping a stepper) collapse
 // into one queued change, as long as the earlier one isn't already being sent.
-const target = (op: Op) =>
-  op.t === "routine.put"
-    ? `routine:${op.routine.id}`
-    : op.t === "exercise.put"
-      ? `exercise:${op.exercise.id}`
-      : op.t === "rotation.set"
-        ? "rotation"
-        : null;
+function target(op: Op) {
+  switch (op.t) {
+    case "routine.put":
+      return `routine:${op.routine.id}`;
+    case "exercise.put":
+      return `exercise:${op.exercise.id}`;
+    case "rotation.set":
+      return "rotation";
+    case "habit.put":
+      return `habit:${op.habit.id}`;
+    case "habit.order":
+      return "habit-order";
+    case "habit.log":
+      return `habit-log:${op.habitId}:${op.date}`;
+    default:
+      return null;
+  }
+}
 
 /** Applies a change right away and queues it for the server. */
 export function dispatch(op: Op, opts: { now?: boolean } = {}) {

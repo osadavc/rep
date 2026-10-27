@@ -95,6 +95,26 @@ export const sleepSchema = z
     message: "Wake time must be after bedtime, within a day",
   });
 
+export const habitSchema = z.object({
+  id,
+  name: z.string().trim().min(1).max(60),
+  /** Times a day it needs doing to count as done. */
+  target: z.number().int().min(1).max(20),
+  /** Weekdays it's due, Monday = 0. Missing means every day. */
+  days: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional(),
+  createdAt: z.number(),
+  archived: z.boolean().optional(),
+});
+
+// How many times a habit was done on one day. Days with none have no entry.
+// The target is kept with the day, so changing a habit later doesn't rewrite its past.
+export const habitLogSchema = z.object({
+  habitId: id,
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  count: z.number().int().min(1).max(100),
+  target: z.number().int().min(1).max(20).optional(),
+});
+
 export const settingsSchema = z.object({
   unit: z.enum(["kg", "lb"]),
   defaultRest: z.number().int().min(0).max(1800),
@@ -108,7 +128,9 @@ export const rotationSchema = z.object({
   next: z.number().int().min(0),
 });
 
-export const dbSchema = z.object({
+// Loose, so fields this version doesn't know (added by a newer deploy) are kept
+// rather than dropped if an older deploy ever writes the file.
+export const dbSchema = z.looseObject({
   version: z.literal(1),
   rev: z.number().int(),
   updatedAt: z.number(),
@@ -118,6 +140,8 @@ export const dbSchema = z.object({
   sessions: z.array(sessionSchema),
   weights: z.array(weightSchema),
   sleeps: z.array(sleepSchema).default([]),
+  habits: z.array(habitSchema).default([]),
+  habitLogs: z.array(habitLogSchema).default([]),
   settings: settingsSchema,
   meta: z.object({ snapshotDay: z.string().optional() }),
 });
@@ -132,6 +156,8 @@ export type SessionExercise = z.infer<typeof sessionExerciseSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type WeightEntry = z.infer<typeof weightSchema>;
 export type SleepEntry = z.infer<typeof sleepSchema>;
+export type Habit = z.infer<typeof habitSchema>;
+export type HabitLog = z.infer<typeof habitLogSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type Db = z.infer<typeof dbSchema>;
 
@@ -229,6 +255,8 @@ export function emptyDb(): Db {
     sessions: [],
     weights: [],
     sleeps: [],
+    habits: [],
+    habitLogs: [],
     settings: { unit: "kg", defaultRest: 90 },
     meta: {},
   };
@@ -246,6 +274,8 @@ export function upgrade(db: Db): Db {
     ...db,
     exercises: missing.length ? [...db.exercises, ...missing] : db.exercises,
     sleeps: db.sleeps ?? [],
+    habits: db.habits ?? [],
+    habitLogs: db.habitLogs ?? [],
   };
 }
 

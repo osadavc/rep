@@ -328,10 +328,13 @@ export function Columns({
 /** Horizontal bars with labels, for breakdowns like sets per muscle. */
 export function Bars({
   rows,
+  max: fixedMax,
 }: {
   rows: { key: string; label: ReactNode; value: number; display: ReactNode }[];
+  /** A fixed full-width value (like 1 for shares); defaults to the largest row. */
+  max?: number;
 }) {
-  const max = Math.max(...rows.map((r) => r.value), 0);
+  const max = fixedMax ?? Math.max(...rows.map((r) => r.value), 0);
   return (
     <div className="space-y-3 pt-3">
       {rows.map((r) => (

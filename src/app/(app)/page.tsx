@@ -30,6 +30,7 @@ import {
   isoDay,
   plural,
 } from "@/lib/format";
+import { activeHabits, dayProgress, perfectDays, tally } from "@/lib/habits";
 import type { Db, Routine } from "@/lib/model";
 import { nights } from "@/lib/sleep";
 import { exerciseMap, summarize, weekStart } from "@/lib/stats";
@@ -250,6 +251,8 @@ function Glance({ db }: { db: Db }) {
         )}
       </Section>
 
+      <HabitsGlance db={db} />
+
       <Section
         title="Sleep"
         action={
@@ -297,5 +300,37 @@ function Glance({ db }: { db: Db }) {
         )}
       </Section>
     </>
+  );
+}
+
+function HabitsGlance({ db }: { db: Db }) {
+  const habits = activeHabits(db);
+  if (!habits.length) return null;
+  const t = tally(db);
+  const today = dayProgress(habits, t, isoDay());
+  const perfect = perfectDays(db, habits, t);
+  return (
+    <Section
+      title="Habits"
+      action={
+        <Link href="/habits" className="press text-[13px] font-medium">
+          {today.due && today.done < today.due ? "Tick off" : "Open"}
+        </Link>
+      }
+    >
+      <p className="tnum pt-3 text-[17px]">
+        {today.due
+          ? today.done === today.due
+            ? `All ${today.due} done`
+            : `${today.done} of ${today.due} done`
+          : "Nothing due today"}
+        {perfect.current >= 2 ? (
+          <span className="text-secondary">
+            {" "}
+            · {perfect.current} perfect days in a row
+          </span>
+        ) : null}
+      </p>
+    </Section>
   );
 }
